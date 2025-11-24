@@ -3,8 +3,7 @@
 // =======================================================
 
 // ⚠️ PASTE URL ANDA DI BAWAH INI (Di dalam tanda kutip)
-const API_URL = "https://script.google.com/macros/s/AKfycbzav3FXwxZII7Al_dtqSYriy5o1YTV2JifXcC48ZYWHmSlFH5QGrIsp_EO_NjlHND3_/exec"; 
-
+const API_URL = "https://script.google.com/macros/s/AKfycbzKAFI3DgcHb6tyTq275DhwTUD9AKViehn7yICsa-O1XKt5XrH1nGmPIxBIKpOdMZnh/exec"; 
 
 // Variabel Global
 let daftarLibur = []; 
