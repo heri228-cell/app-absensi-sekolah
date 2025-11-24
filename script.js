@@ -1,5 +1,5 @@
 // =======================================================
-// SCRIPT UTAMA (EDISI NIPD)
+// SCRIPT UTAMA (LOGIKA FINAL)
 // =======================================================
 
 // ⚠️ PASTE URL ANDA DI SINI
@@ -64,7 +64,6 @@ function renderTabel(siswaList) {
     tbody.innerHTML = ""; 
     siswaList.forEach((siswa, index) => {
         const row = document.createElement("tr");
-        // PERUBAHAN: Menggunakan NIPD
         row.innerHTML = `
             <td class="text-center">${index + 1}</td>
             <td><div class="fw-bold">${siswa.nama}</div><small class="text-muted">NIPD: ${siswa.nipd}</small></td>
@@ -90,7 +89,6 @@ function kirimAbsensi() {
     let countH = 0;
 
     rows.forEach(row => {
-        // PERUBAHAN: Ambil NIPD dari text small
         const rawText = row.querySelector("small").innerText; 
         const nipd = rawText.replace("NIPD: ", "").trim();
         const nama = row.querySelector(".fw-bold").innerText;
@@ -134,9 +132,7 @@ function tarikRekap() {
     showLoading(true);
     document.getElementById("panelRekap").classList.add("d-none");
 
-    const params = `?action=getRekap&tglMulai=${tglMulai}&tglAkhir=${tglAkhir}&kelas=${kelas}`;
-    
-    fetch(API_URL + params)
+    fetch(API_URL + `?action=getRekap&tglMulai=${tglMulai}&tglAkhir=${tglAkhir}&kelas=${kelas}`)
     .then(res => res.json())
     .then(hasil => {
         showLoading(false);
@@ -153,29 +149,52 @@ function tarikRekap() {
 function renderTabelRekap(data) {
     const tbody = document.getElementById("tabelRekapBody");
     tbody.innerHTML = ""; 
-
     if (data.length === 0) {
         tbody.innerHTML = "<tr><td colspan='7' class='text-center py-3'>Tidak ada data.</td></tr>";
         return;
     }
-
     data.forEach((siswa, index) => {
         const total = siswa.h + siswa.s + siswa.i + siswa.a;
         let persen = 0;
         if (total > 0) persen = Math.round((siswa.h / total) * 100);
         let badgeColor = persen < 70 ? "bg-danger" : (persen < 90 ? "bg-warning text-dark" : "bg-success");
-
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${index + 1}</td>
-            <td class="text-start fw-bold">${siswa.nama}</td>
-            <td>${siswa.h}</td>
-            <td>${siswa.s}</td>
-            <td>${siswa.i}</td>
-            <td>${siswa.a}</td>
+            <td>${index + 1}</td><td class="text-start fw-bold">${siswa.nama}</td>
+            <td>${siswa.h}</td><td>${siswa.s}</td><td>${siswa.i}</td><td>${siswa.a}</td>
             <td><span class="badge ${badgeColor}">${persen}%</span></td>
         `;
         tbody.appendChild(row);
+    });
+}
+
+// FITUR DOWNLOAD EXCEL (NEW)
+function downloadExcel() {
+    const tglMulai = document.getElementById("rekapMulai").value;
+    const tglAkhir = document.getElementById("rekapAkhir").value;
+    const kelas = document.getElementById("rekapKelas").value;
+    
+    // Ubah tombol jadi loading
+    const btn = document.querySelector("#panelRekap .btn-success");
+    const textAsli = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Membuat File...`;
+    btn.disabled = true;
+
+    fetch(API_URL + `?action=downloadExcel&tglMulai=${tglMulai}&tglAkhir=${tglAkhir}&kelas=${kelas}`)
+    .then(res => res.json())
+    .then(hasil => {
+        btn.innerHTML = textAsli;
+        btn.disabled = false;
+        if (hasil.status === "success") {
+            window.open(hasil.url, "_blank");
+        } else {
+            alert("Gagal: " + hasil.message);
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = textAsli;
+        btn.disabled = false;
+        alert("Gagal request download.");
     });
 }
 
