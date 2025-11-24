@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Siswa Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #f4f6f9; }
+        .card-header { background-color: #0d6efd; color: white; }
+        .status-radio { transform: scale(1.3); cursor: pointer; }
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 9999;
+            display: none; justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading" class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <div class="text-center mb-4">
+            <h2><i class="fas fa-school me-2"></i>Sistem Absensi Sekolah</h2>
+            <p class="text-muted" id="infoTahunAjaran">Memuat Info Tahun Ajaran...</p>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Tanggal Absen</label>
+                        <input type="date" id="inputTanggal" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Pilih Kelas</label>
+                        <select id="selectKelas" class="form-select">
+                            <option value="">-- Pilih Kelas --</option>
+                            <option value="7A">7A</option>
+                            <option value="7B">7B</option>
+                            <option value="8A">8A</option>
+                            <option value="8B">8B</option>
+                            </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button onclick="loadSiswa()" class="btn btn-primary w-100">
+                            <i class="fas fa-users me-2"></i>Tampilkan Siswa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="panelAbsensi" class="card shadow-sm d-none">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Daftar Kehadiran</h5>
+                <span id="labelKelas" class="badge bg-light text-primary fs-6">Kelas -</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" width="5%">No</th>
+                                <th width="35%">Nama Siswa</th>
+                                <th class="text-center" width="40%">Status</th>
+                                <th width="20%">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelSiswaBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white p-3">
+                <button onclick="kirimAbsensi()" class="btn btn-success w-100 btn-lg">
+                    <i class="fas fa-save me-2"></i>SIMPAN DATA ABSENSI
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toastMessage" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastText">
+                    Pesan notifikasi.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="script.js"></script>
+
+</body>
+</html>
