@@ -1,187 +1,153 @@
 // =======================================================
-// FULL SCRIPT OTAR (LOGIKA INPUT & REKAP)
+// SCRIPT UTAMA (EDISI NIPD)
 // =======================================================
 
-// ⚠️ PASTE URL ANDA DI BAWAH INI (Di dalam tanda kutip)
+// ⚠️ PASTE URL ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbzKAFI3DgcHb6tyTq275DhwTUD9AKViehn7yICsa-O1XKt5XrH1nGmPIxBIKpOdMZnh/exec"; 
 
-// Variabel Global
 let daftarLibur = []; 
 
-// 1. SAAT HALAMAN DIBUKA (ON LOAD)
 document.addEventListener("DOMContentLoaded", function() {
-    // Set tanggal hari ini di input
     const today = new Date().toISOString().split('T')[0];
     const inputTgl = document.getElementById("inputTanggal");
     if(inputTgl) inputTgl.value = today;
-
-    // Ambil Data Config
+    if(document.getElementById("rekapMulai")) document.getElementById("rekapMulai").value = today;
+    if(document.getElementById("rekapAkhir")) document.getElementById("rekapAkhir").value = today;
     fetchConfig();
 });
 
-// 2. FUNGSI AMBIL CONFIG
 function fetchConfig() {
     showLoading(true);
     fetch(API_URL + "?action=getConfig")
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
         if(data.status === "success") {
-            const info = `Tahun Ajaran: <b>${data.config.Tahun_Ajaran}</b> | Semester: <b>${data.config.Semester}</b>`;
-            document.getElementById("infoTahunAjaran").innerHTML = info;
+            document.getElementById("infoTahunAjaran").innerHTML = `TP: <b>${data.config.Tahun_Ajaran}</b> | Sem: <b>${data.config.Semester}</b>`;
             daftarLibur = data.hari_libur; 
         }
         showLoading(false);
     })
-    .catch(err => {
-        console.error(err);
-        showLoading(false);
-        alert("Gagal mengambil data konfigurasi!");
-    });
+    .catch(err => { console.error(err); showLoading(false); });
 }
 
-// 3. FUNGSI TAMPILKAN SISWA (INPUT)
 function loadSiswa() {
     const kelas = document.getElementById("selectKelas").value;
     const tanggal = document.getElementById("inputTanggal").value;
 
-    if (kelas === "") {
-        showToast("Pilih kelas dulu bos!", "bg-warning");
-        return;
-    }
+    if (kelas === "") return showToast("Pilih kelas dulu!", "bg-warning");
 
     const tglSplit = tanggal.split("-");
     const tglCek = `${tglSplit[2]}/${tglSplit[1]}/${tglSplit[0]}`; 
-
     if (daftarLibur.includes(tglCek)) {
-        const yakin = confirm("PERINGATAN: Tanggal ini tercatat sebagai HARI LIBUR.\n\nYakin mau tetap absen?");
-        if (!yakin) return;
+        if(!confirm("PERINGATAN: Hari ini LIBUR. Lanjut?")) return;
     }
 
     showLoading(true);
     document.getElementById("panelAbsensi").classList.add("d-none");
 
     fetch(API_URL + "?action=getSiswa&kelas=" + kelas)
-    .then(response => response.json())
-    .then(response => {
-        if (response.status === "success") {
-            renderTabel(response.data);
-            document.getElementById("labelKelas").innerText = "Kelas " + kelas;
+    .then(res => res.json())
+    .then(res => {
+        if (res.status === "success") {
+            renderTabel(res.data);
             document.getElementById("panelAbsensi").classList.remove("d-none");
         } else {
-            alert("Error: " + response.message);
+            alert("Error: " + res.message);
         }
         showLoading(false);
     })
-    .catch(err => {
-        console.error(err);
-        showLoading(false);
-        alert("Gagal koneksi ke server.");
-    });
+    .catch(err => { showLoading(false); alert("Gagal koneksi server."); });
 }
 
 function renderTabel(siswaList) {
     const tbody = document.getElementById("tabelSiswaBody");
     tbody.innerHTML = ""; 
-
     siswaList.forEach((siswa, index) => {
         const row = document.createElement("tr");
+        // PERUBAHAN: Menggunakan NIPD
         row.innerHTML = `
             <td class="text-center">${index + 1}</td>
-            <td>
-                <div class="fw-bold">${siswa.nama}</div>
-                <small class="text-muted">${siswa.nisn}</small>
-            </td>
+            <td><div class="fw-bold">${siswa.nama}</div><small class="text-muted">NIPD: ${siswa.nipd}</small></td>
             <td class="text-center">
                 <div class="d-flex justify-content-center gap-2">
-                    <div class="form-check"><input class="form-check-input status-radio bg-success" type="radio" name="status_${siswa.nisn}" value="H" checked><label class="d-block small fw-bold">H</label></div>
-                    <div class="form-check"><input class="form-check-input status-radio bg-warning" type="radio" name="status_${siswa.nisn}" value="S"><label class="d-block small fw-bold">S</label></div>
-                    <div class="form-check"><input class="form-check-input status-radio bg-info" type="radio" name="status_${siswa.nisn}" value="I"><label class="d-block small fw-bold">I</label></div>
-                    <div class="form-check"><input class="form-check-input status-radio bg-danger" type="radio" name="status_${siswa.nisn}" value="A"><label class="d-block small fw-bold">A</label></div>
+                    <div class="form-check"><input class="form-check-input status-radio bg-success" type="radio" name="status_${siswa.nipd}" value="H" checked><label class="d-block small fw-bold">H</label></div>
+                    <div class="form-check"><input class="form-check-input status-radio bg-warning" type="radio" name="status_${siswa.nipd}" value="S"><label class="d-block small fw-bold">S</label></div>
+                    <div class="form-check"><input class="form-check-input status-radio bg-info" type="radio" name="status_${siswa.nipd}" value="I"><label class="d-block small fw-bold">I</label></div>
+                    <div class="form-check"><input class="form-check-input status-radio bg-danger" type="radio" name="status_${siswa.nipd}" value="A"><label class="d-block small fw-bold">A</label></div>
                 </div>
             </td>
-            <td><input type="text" class="form-control form-control-sm" id="ket_${siswa.nisn}" placeholder="Ket."></td>
+            <td><input type="text" class="form-control form-control-sm" id="ket_${siswa.nipd}"></td>
         `;
         tbody.appendChild(row);
     });
 }
 
-// 4. KIRIM DATA KE GOOGLE SHEET
 function kirimAbsensi() {
-    const tableRows = document.getElementById("tabelSiswaBody").querySelectorAll("tr");
+    const rows = document.getElementById("tabelSiswaBody").querySelectorAll("tr");
     const kelas = document.getElementById("selectKelas").value;
     const tanggal = document.getElementById("inputTanggal").value;
-
     let dataSiswa = [];
     let countH = 0;
 
-    tableRows.forEach(row => {
-        const nisn = row.querySelector("small").innerText; 
+    rows.forEach(row => {
+        // PERUBAHAN: Ambil NIPD dari text small
+        const rawText = row.querySelector("small").innerText; 
+        const nipd = rawText.replace("NIPD: ", "").trim();
         const nama = row.querySelector(".fw-bold").innerText;
-        const statusEl = row.querySelector(`input[name="status_${nisn}"]:checked`);
+        const statusEl = row.querySelector(`input[name="status_${nipd}"]:checked`);
         const status = statusEl ? statusEl.value : "A";
-        const ket = row.querySelector(`#ket_${nisn}`).value;
+        const ket = row.querySelector(`#ket_${nipd}`).value;
 
         if(status === 'H') countH++;
-
-        dataSiswa.push({ nisn: nisn, nama: nama, status: status, keterangan: ket });
+        dataSiswa.push({ nipd: nipd, nama: nama, status: status, keterangan: ket });
     });
 
     if (dataSiswa.length === 0) return;
-    const konfirmasi = confirm(`Simpan Absensi Kelas ${kelas}?\n\nHadir: ${countH} Siswa\nTotal: ${dataSiswa.length} Siswa`);
-    if (!konfirmasi) return;
-
-    const paketData = { action: "simpanAbsen", tanggal: tanggal, kelas: kelas, data: dataSiswa };
+    if (!confirm(`Simpan Absensi Kelas ${kelas}?\nHadir: ${countH} Siswa`)) return;
 
     showLoading(true);
     fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify(paketData)
+        body: JSON.stringify({ action: "simpanAbsen", tanggal: tanggal, kelas: kelas, data: dataSiswa })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(hasil => {
         showLoading(false);
         if (hasil.status === "success") {
-            showToast("Berhasil! Data tersimpan.", "bg-success");
+            showToast("Berhasil disimpan!", "bg-success");
             document.getElementById("panelAbsensi").classList.add("d-none");
             document.getElementById("selectKelas").value = "";
         } else {
-            alert("Gagal menyimpan: " + hasil.message);
+            alert("Gagal: " + hasil.message);
         }
     })
-    .catch(err => {
-        showLoading(false);
-        console.error(err);
-        alert("Terjadi kesalahan jaringan.");
-    });
+    .catch(err => { showLoading(false); alert("Error jaringan."); });
 }
 
-// 5. TARIK REKAP (LAPORAN)
 function tarikRekap() {
-    const bulan = document.getElementById("rekapBulan").value;
-    const tahun = document.getElementById("rekapTahun").value;
+    const tglMulai = document.getElementById("rekapMulai").value;
+    const tglAkhir = document.getElementById("rekapAkhir").value;
     const kelas = document.getElementById("rekapKelas").value;
+
+    if(!tglMulai || !tglAkhir) return alert("Isi tanggal dulu!");
 
     showLoading(true);
     document.getElementById("panelRekap").classList.add("d-none");
 
-    const params = `?action=getRekap&bulan=${bulan}&tahun=${tahun}&kelas=${kelas}`;
+    const params = `?action=getRekap&tglMulai=${tglMulai}&tglAkhir=${tglAkhir}&kelas=${kelas}`;
     
     fetch(API_URL + params)
-    .then(response => response.json())
+    .then(res => res.json())
     .then(hasil => {
         showLoading(false);
         if (hasil.status === "success") {
             renderTabelRekap(hasil.data);
             document.getElementById("panelRekap").classList.remove("d-none");
         } else {
-            alert("Gagal menarik rekap: " + hasil.message);
+            alert("Gagal: " + hasil.message);
         }
     })
-    .catch(err => {
-        showLoading(false);
-        console.error(err);
-        alert("Kesalahan jaringan.");
-    });
+    .catch(err => { showLoading(false); alert("Error jaringan."); });
 }
 
 function renderTabelRekap(data) {
@@ -189,7 +155,7 @@ function renderTabelRekap(data) {
     tbody.innerHTML = ""; 
 
     if (data.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='7' class='text-center py-3'>Belum ada data absensi di bulan ini.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' class='text-center py-3'>Tidak ada data.</td></tr>";
         return;
     }
 
@@ -197,10 +163,7 @@ function renderTabelRekap(data) {
         const total = siswa.h + siswa.s + siswa.i + siswa.a;
         let persen = 0;
         if (total > 0) persen = Math.round((siswa.h / total) * 100);
-
-        let badgeColor = "bg-success";
-        if (persen < 70) badgeColor = "bg-danger";
-        else if (persen < 90) badgeColor = "bg-warning text-dark";
+        let badgeColor = persen < 70 ? "bg-danger" : (persen < 90 ? "bg-warning text-dark" : "bg-success");
 
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -216,18 +179,12 @@ function renderTabelRekap(data) {
     });
 }
 
-// UTILITIES
 function showLoading(isLoading) {
-    const loading = document.getElementById("loading");
-    if (isLoading) loading.style.display = "flex";
-    else loading.style.display = "none";
+    document.getElementById("loading").style.display = isLoading ? "flex" : "none";
 }
-
-function showToast(message, colorClass) {
+function showToast(msg, color) {
     const toastEl = document.getElementById("toastMessage");
-    const toastBody = document.getElementById("toastText");
-    toastEl.className = `toast align-items-center text-white border-0 ${colorClass}`;
-    toastBody.innerText = message;
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
+    document.getElementById("toastText").innerText = msg;
+    toastEl.className = `toast align-items-center text-white border-0 ${color}`;
+    new bootstrap.Toast(toastEl).show();
 }
