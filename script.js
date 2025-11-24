@@ -1,8 +1,7 @@
 // =======================================================
-// SCRIPT UTAMA (FINAL V8 - LEGER)
+// SCRIPT UTAMA (FINAL V9 - MANAGEMENT)
 // =======================================================
 
-// ⚠️ PASTE URL APPS SCRIPT ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbzKAFI3DgcHb6tyTq275DhwTUD9AKViehn7yICsa-O1XKt5XrH1nGmPIxBIKpOdMZnh/exec"; 
 
 let daftarLibur = []; 
@@ -30,6 +29,7 @@ function fetchConfig() {
     .catch(err => { console.error(err); showLoading(false); });
 }
 
+// --- BAGIAN 1: INPUT ABSEN ---
 function loadSiswa() {
     const kelas = document.getElementById("selectKelas").value;
     const tanggal = document.getElementById("inputTanggal").value;
@@ -118,6 +118,7 @@ function kirimAbsensi() {
     .catch(err => { showLoading(false); alert("Error jaringan."); });
 }
 
+// --- BAGIAN 2: LAPORAN ---
 function tarikRekap() {
     const tglMulai = document.getElementById("rekapMulai").value;
     const tglAkhir = document.getElementById("rekapAkhir").value;
@@ -163,7 +164,6 @@ function renderTabelRekap(data) {
     });
 }
 
-// === FITUR DOWNLOAD ===
 function downloadExcel() { handleDownload("downloadExcel"); }
 function downloadLeger() { handleDownload("downloadLeger"); }
 
@@ -182,6 +182,91 @@ function handleDownload(actionType) {
         else alert("Gagal: " + hasil.message);
     })
     .catch(err => { showLoading(false); alert("Gagal request download."); });
+}
+
+// --- BAGIAN 3: MANAJEMEN SISWA (BARU) ---
+function tambahSiswa() {
+    const nipd = document.getElementById("addNipd").value;
+    const nama = document.getElementById("addNama").value;
+    const kelas = document.getElementById("addKelas").value;
+    const jk = document.getElementById("addJK").value;
+
+    if (!nipd || !nama) return alert("NIPD dan Nama harus diisi!");
+
+    showLoading(true);
+    fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "tambahSiswa", nipd: nipd, nama: nama, kelas: kelas, jk: jk })
+    })
+    .then(res => res.json())
+    .then(hasil => {
+        showLoading(false);
+        if (hasil.status === "success") {
+            showToast("Siswa berhasil ditambahkan!", "bg-success");
+            document.getElementById("addNipd").value = "";
+            document.getElementById("addNama").value = "";
+            // Auto refresh list
+            document.getElementById("filterKelasManajemen").value = kelas;
+            loadManajemenSiswa();
+        } else {
+            alert("Gagal: " + hasil.message);
+        }
+    })
+    .catch(err => { showLoading(false); alert("Error jaringan."); });
+}
+
+function loadManajemenSiswa() {
+    const kelas = document.getElementById("filterKelasManajemen").value;
+    showLoading(true);
+    
+    fetch(API_URL + "?action=getSiswa&kelas=" + kelas)
+    .then(res => res.json())
+    .then(res => {
+        showLoading(false);
+        const tbody = document.getElementById("tabelManajemenBody");
+        tbody.innerHTML = "";
+        
+        if (res.status === "success" && res.data.length > 0) {
+            res.data.forEach(s => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${s.nipd}</td>
+                    <td>${s.nama}</td>
+                    <td>${s.jk}</td>
+                    <td class="text-center">
+                        <button onclick="hapusSiswa('${s.nipd}', '${s.nama}')" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Tidak ada siswa aktif di kelas ${kelas}.</td></tr>`;
+        }
+    })
+    .catch(err => { showLoading(false); alert("Gagal mengambil data."); });
+}
+
+function hapusSiswa(nipd, nama) {
+    if (!confirm(`Yakin ingin menonaktifkan siswa ini?\n\n${nama} (NIPD: ${nipd})`)) return;
+
+    showLoading(true);
+    fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "hapusSiswa", nipd: nipd })
+    })
+    .then(res => res.json())
+    .then(hasil => {
+        showLoading(false);
+        if (hasil.status === "success") {
+            showToast("Siswa dinonaktifkan.", "bg-warning");
+            loadManajemenSiswa(); // Refresh list
+        } else {
+            alert("Gagal: " + hasil.message);
+        }
+    })
+    .catch(err => { showLoading(false); alert("Error jaringan."); });
 }
 
 function showLoading(isLoading) { document.getElementById("loading").style.display = isLoading ? "flex" : "none"; }
