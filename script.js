@@ -1,8 +1,8 @@
 // =======================================================
-// SCRIPT UTAMA (LOGIKA FINAL)
+// SCRIPT UTAMA (FINAL V8 - LEGER)
 // =======================================================
 
-// ⚠️ PASTE URL ANDA DI SINI
+// ⚠️ PASTE URL APPS SCRIPT ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbzKAFI3DgcHb6tyTq275DhwTUD9AKViehn7yICsa-O1XKt5XrH1nGmPIxBIKpOdMZnh/exec"; 
 
 let daftarLibur = []; 
@@ -33,14 +33,11 @@ function fetchConfig() {
 function loadSiswa() {
     const kelas = document.getElementById("selectKelas").value;
     const tanggal = document.getElementById("inputTanggal").value;
-
     if (kelas === "") return showToast("Pilih kelas dulu!", "bg-warning");
-
+    
     const tglSplit = tanggal.split("-");
     const tglCek = `${tglSplit[2]}/${tglSplit[1]}/${tglSplit[0]}`; 
-    if (daftarLibur.includes(tglCek)) {
-        if(!confirm("PERINGATAN: Hari ini LIBUR. Lanjut?")) return;
-    }
+    if (daftarLibur.includes(tglCek) && !confirm("PERINGATAN: Hari ini LIBUR. Lanjut?")) return;
 
     showLoading(true);
     document.getElementById("panelAbsensi").classList.add("d-none");
@@ -95,7 +92,6 @@ function kirimAbsensi() {
         const statusEl = row.querySelector(`input[name="status_${nipd}"]:checked`);
         const status = statusEl ? statusEl.value : "A";
         const ket = row.querySelector(`#ket_${nipd}`).value;
-
         if(status === 'H') countH++;
         dataSiswa.push({ nipd: nipd, nama: nama, status: status, keterangan: ket });
     });
@@ -126,7 +122,6 @@ function tarikRekap() {
     const tglMulai = document.getElementById("rekapMulai").value;
     const tglAkhir = document.getElementById("rekapAkhir").value;
     const kelas = document.getElementById("rekapKelas").value;
-
     if(!tglMulai || !tglAkhir) return alert("Isi tanggal dulu!");
 
     showLoading(true);
@@ -168,39 +163,28 @@ function renderTabelRekap(data) {
     });
 }
 
-// FITUR DOWNLOAD EXCEL (NEW)
-function downloadExcel() {
+// === FITUR DOWNLOAD ===
+function downloadExcel() { handleDownload("downloadExcel"); }
+function downloadLeger() { handleDownload("downloadLeger"); }
+
+function handleDownload(actionType) {
     const tglMulai = document.getElementById("rekapMulai").value;
     const tglAkhir = document.getElementById("rekapAkhir").value;
     const kelas = document.getElementById("rekapKelas").value;
-    
-    // Ubah tombol jadi loading
-    const btn = document.querySelector("#panelRekap .btn-success");
-    const textAsli = btn.innerHTML;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Membuat File...`;
-    btn.disabled = true;
+    if(!tglMulai || !tglAkhir) return alert("Pilih tanggal dulu!");
 
-    fetch(API_URL + `?action=downloadExcel&tglMulai=${tglMulai}&tglAkhir=${tglAkhir}&kelas=${kelas}`)
+    showLoading(true);
+    fetch(API_URL + `?action=${actionType}&tglMulai=${tglMulai}&tglAkhir=${tglAkhir}&kelas=${kelas}`)
     .then(res => res.json())
     .then(hasil => {
-        btn.innerHTML = textAsli;
-        btn.disabled = false;
-        if (hasil.status === "success") {
-            window.open(hasil.url, "_blank");
-        } else {
-            alert("Gagal: " + hasil.message);
-        }
+        showLoading(false);
+        if (hasil.status === "success") window.open(hasil.url, "_blank");
+        else alert("Gagal: " + hasil.message);
     })
-    .catch(err => {
-        btn.innerHTML = textAsli;
-        btn.disabled = false;
-        alert("Gagal request download.");
-    });
+    .catch(err => { showLoading(false); alert("Gagal request download."); });
 }
 
-function showLoading(isLoading) {
-    document.getElementById("loading").style.display = isLoading ? "flex" : "none";
-}
+function showLoading(isLoading) { document.getElementById("loading").style.display = isLoading ? "flex" : "none"; }
 function showToast(msg, color) {
     const toastEl = document.getElementById("toastMessage");
     document.getElementById("toastText").innerText = msg;
