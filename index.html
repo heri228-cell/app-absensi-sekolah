@@ -35,7 +35,12 @@
             </li>
             <li class="nav-item">
                 <button class="nav-link fw-bold" id="tab-rekap" data-bs-toggle="pill" data-bs-target="#menu-rekap" type="button">
-                    <i class="fas fa-file-alt me-1"></i> LAPORAN & DOWNLOAD
+                    <i class="fas fa-file-alt me-1"></i> LAPORAN
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-data" data-bs-toggle="pill" data-bs-target="#menu-data" type="button">
+                    <i class="fas fa-user-cog me-1"></i> MANAJEMEN SISWA
                 </button>
             </li>
         </ul>
@@ -77,7 +82,6 @@
             <div class="tab-pane fade" id="menu-rekap" role="tabpanel">
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
-                        <div class="alert alert-info py-2 mb-3 small">Pilih periode laporan.</div>
                         <div class="row g-3">
                             <div class="col-md-3"><label class="form-label fw-bold">Dari</label><input type="date" id="rekapMulai" class="form-control"></div>
                             <div class="col-md-3"><label class="form-label fw-bold">Sampai</label><input type="date" id="rekapAkhir" class="form-control"></div>
@@ -90,27 +94,90 @@
                                     <option value="8B">8B</option>
                                 </select>
                             </div>
-                            <div class="col-md-3 d-flex align-items-end"><button onclick="tarikRekap()" class="btn btn-info text-white w-100">Tampilkan Data</button></div>
+                            <div class="col-md-3 d-flex align-items-end"><button onclick="tarikRekap()" class="btn btn-info text-white w-100">Cari Data</button></div>
                         </div>
                     </div>
                 </div>
-                
                 <div id="panelRekap" class="card shadow-sm d-none">
-                    <div class="card-header bg-info text-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Hasil Rekapitulasi</h5>
-                            <div class="btn-group">
-                                <button onclick="downloadExcel()" class="btn btn-success btn-sm fw-bold border-end"><i class="fas fa-file-excel me-1"></i> Rekap Total</button>
-                                <button onclick="downloadLeger()" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-calendar-alt me-1"></i> Leger Harian</button>
-                            </div>
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Hasil Laporan</h5>
+                        <div class="btn-group">
+                            <button onclick="downloadExcel()" class="btn btn-success btn-sm fw-bold border-end"><i class="fas fa-file-excel me-1"></i> Rekap</button>
+                            <button onclick="downloadLeger()" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-calendar-alt me-1"></i> Leger</button>
                         </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped mb-0 text-center">
-                                <thead class="table-light"><tr><th rowspan="2" class="align-middle">No</th><th rowspan="2" class="align-middle text-start">Nama</th><th colspan="4">Kehadiran</th><th rowspan="2" class="align-middle">%</th></tr><tr><th class="bg-success text-white">H</th><th class="bg-warning text-dark">S</th><th class="bg-info text-white">I</th><th class="bg-danger text-white">A</th></tr></thead>
+                                <thead class="table-light"><tr><th rowspan="2">No</th><th rowspan="2" class="text-start">Nama</th><th colspan="4">Kehadiran</th><th rowspan="2">%</th></tr><tr><th class="bg-success text-white">H</th><th class="bg-warning text-dark">S</th><th class="bg-info text-white">I</th><th class="bg-danger text-white">A</th></tr></thead>
                                 <tbody id="tabelRekapBody"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="menu-data" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-primary text-white"><h6 class="mb-0"><i class="fas fa-plus me-2"></i>Tambah Siswa Baru</h6></div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">NIPD (No. Induk)</label>
+                                    <input type="number" id="addNipd" class="form-control" placeholder="Contoh: 2154">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nama Lengkap</label>
+                                    <input type="text" id="addNama" class="form-control" placeholder="Nama siswa...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Kelas</label>
+                                    <select id="addKelas" class="form-select">
+                                        <option value="7A">7A</option>
+                                        <option value="7B">7B</option>
+                                        <option value="8A">8A</option>
+                                        <option value="8B">8B</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Jenis Kelamin</label>
+                                    <select id="addJK" class="form-select">
+                                        <option value="L">Laki-laki</option>
+                                        <option value="P">Perempuan</option>
+                                    </select>
+                                </div>
+                                <button onclick="tambahSiswa()" class="btn btn-primary w-100">Simpan Siswa</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Daftar Siswa Aktif</h6>
+                                <div class="d-flex gap-2">
+                                    <select id="filterKelasManajemen" class="form-select form-select-sm" style="width: 100px;">
+                                        <option value="7A">7A</option>
+                                        <option value="7B">7B</option>
+                                        <option value="8A">8A</option>
+                                        <option value="8B">8B</option>
+                                    </select>
+                                    <button onclick="loadManajemenSiswa()" class="btn btn-sm btn-light"><i class="fas fa-sync"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-striped table-hover mb-0">
+                                        <thead class="table-light sticky-top">
+                                            <tr><th>NIPD</th><th>Nama</th><th>L/P</th><th class="text-center">Aksi</th></tr>
+                                        </thead>
+                                        <tbody id="tabelManajemenBody">
+                                            <tr><td colspan="4" class="text-center py-3">Pilih kelas & klik refresh.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
